@@ -1,815 +1,328 @@
-Football Tournament
-Live Schedule
-ESPN Live Data
-🌍 Timezone:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Tournament – Live Schedule</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060912;min-height:100vh;padding:2rem 1rem;font-family:'Inter',sans-serif}
+.wc-wrap{background:#0a0e1a;border-radius:16px;padding:1.5rem;max-width:860px;margin:0 auto;color:#fff}
+.wc-header{text-align:center;margin-bottom:1.2rem;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:1rem;position:relative}
+.wc-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:#c9a227;line-height:1}
+.wc-sub{font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:4px}
+.header-right{position:absolute;right:0;top:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.live-badge{font-size:11px;color:#22c55e;display:flex;align-items:center;white-space:nowrap}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;margin-right:5px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.tz-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:1.2rem;flex-wrap:wrap}
+.tz-label{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase}
+.tz-select{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:7px 12px;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;appearance:none;-webkit-appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.tz-select:focus{outline:none;border-color:#c9a227}
+.tz-select option{background:#0a0e1a;color:#fff}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.2rem;justify-content:center}
+.filter-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);border-radius:20px;padding:5px 14px;font-size:12px;cursor:pointer;transition:all .2s}
+.filter-btn.active,.filter-btn:hover{background:#c9a227;border-color:#c9a227;color:#0a0e1a;font-weight:600}
+.day-group{margin-bottom:1.2rem}
+.day-label{font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:8px;padding-left:4px}
+.match-card{display:grid;grid-template-columns:52px 1fr 90px 80px;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;margin-bottom:6px;gap:10px;transition:background .2s}
+.match-card:hover{background:rgba(255,255,255,.09)}
+.match-card.live-match{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.04)} .match-card.finished{opacity:.75}
+.match-card.finished{opacity:.75}
+.match-time{font-size:12px;color:#c9a227;font-weight:600;font-variant-numeric:tabular-nums;text-align:center;line-height:1.4}
+.match-time.is-live{color:#22c55e}
+.match-time.is-fin{color:rgba(255,255,255,.35)}
+.phase-label{font-size:9px;display:block;letter-spacing:.5px}
+.match-teams{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;gap:6px;min-width:0}
+.team-block{display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden}
+.team-block.left{justify-content:flex-end;text-align:right}
+.team-block.right{justify-content:flex-start;text-align:left}
+.t-flag{width:28px;height:19px;border-radius:2px;object-fit:cover;flex-shrink:0;display:block}
+.t-name{font-size:13px;font-weight:500;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.score-center{text-align:center;width:40px}
+.score-num{font-size:18px;font-weight:700;color:#fff;letter-spacing:2px}
+.score-num.is-live{color:#22c55e}
+.vs-pill{background:rgba(255,255,255,.08);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1px;text-align:center;width:40px}
+.match-badge{font-size:10px;padding:2px 7px;border-radius:10px;white-space:nowrap;justify-self:center;text-align:center}
+.group-badge{color:rgba(255,255,255,.6);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15)}
+.ko-badge{background:rgba(201,162,39,.15);color:#c9a227;border:1px solid rgba(201,162,39,.3)}
+.live-badge-pill{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-size:10px;padding:2px 7px;border-radius:10px;white-space:nowrap;text-align:center;justify-self:center}
+.match-venue{font-size:10px;color:rgba(255,255,255,.3);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spinner{width:28px;height:28px;border:2px solid rgba(255,255,255,.1);border-top-color:#c9a227;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-state{text-align:center;padding:3rem;color:rgba(255,255,255,.4)}
+.error-box{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:1.5rem;text-align:center;color:#f87171;font-size:13px;line-height:1.6}
+.retry-btn{margin-top:1rem;background:#c9a227;border:none;color:#0a0e1a;font-weight:600;border-radius:8px;padding:8px 18px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif}
+.no-results{text-align:center;color:rgba(255,255,255,.3);padding:2rem;font-size:13px}
+.last-updated{text-align:center;font-size:10px;color:rgba(255,255,255,.18);margin-top:1rem;padding-top:.8rem;border-top:1px solid rgba(255,255,255,.05)}
+@media(max-width:600px){ .match-card{grid-template-columns:44px 1fr 70px;} .match-venue{display:none} .header-right{position:static;align-items:center;margin-top:.5rem} .t-name{font-size:11px} }
+</style>
+</head>
+<body>
+<div class="wc-wrap">
+  <div class="wc-header">
+    <div class="wc-title">Football Tournament</div>
+    <div class="wc-sub">Live Schedule</div>
+    <div class="header-right">
+      <span class="live-badge"><span class="live-dot"></span>ESPN Live Data</span>
+    </div>
+  </div>
 
-UAE (GMT+4)
-All
-Group Stage
-Round of 32
-Round of 16
-Quarter-final
-Semi-final
-Final
-Thu, Jun 11
-23:00
-Mexico
-Mexico
-VS
-South Africa
-South Africa
-Group Stage
-Mexico City
-Fri, Jun 12
-06:00
-South Korea
-South Korea
-VS
-Czechia
-Czechia
-Group Stage
-Guadalajara
-23:00
-Canada
-Canada
-VS
-Bosnia-Herzegovina
-Bosnia-Herzegovina
-Group Stage
-Toronto
-Sat, Jun 13
-05:00
-United States
-United States
-VS
-Paraguay
-Paraguay
-Group Stage
-Inglewood, California
-23:00
-Qatar
-Qatar
-VS
-Switzerland
-Switzerland
-Group Stage
-Santa Clara, California
-Sun, Jun 14
-02:00
-Brazil
-Brazil
-VS
-Morocco
-Morocco
-Group Stage
-East Rutherford, New Jersey
-05:00
-Haiti
-Haiti
-VS
-Scotland
-Scotland
-Group Stage
-Foxborough, Massachusetts
-08:00
-Australia
-Australia
-VS
-Türkiye
-Türkiye
-Group Stage
-Vancouver
-21:00
-Germany
-Germany
-VS
-Curaçao
-Curaçao
-Group Stage
-Houston, Texas
-Mon, Jun 15
-00:00
-Netherlands
-Netherlands
-VS
-Japan
-Japan
-Group Stage
-Arlington, Texas
-03:00
-Ivory Coast
-Ivory Coast
-VS
-Ecuador
-Ecuador
-Group Stage
-Philadelphia, Pennsylvania
-06:00
-Sweden
-Sweden
-VS
-Tunisia
-Tunisia
-Group Stage
-Guadalupe
-20:00
-Spain
-Spain
-VS
-Cape Verde
-Cape Verde
-Group Stage
-Atlanta, Georgia
-23:00
-Belgium
-Belgium
-VS
-Egypt
-Egypt
-Group Stage
-Seattle, Washington
-Tue, Jun 16
-02:00
-Saudi Arabia
-Saudi Arabia
-VS
-Uruguay
-Uruguay
-Group Stage
-Miami Gardens, Florida
-05:00
-Iran
-Iran
-VS
-New Zealand
-New Zealand
-Group Stage
-Inglewood, California
-23:00
-France
-France
-VS
-Senegal
-Senegal
-Group Stage
-East Rutherford, New Jersey
-Wed, Jun 17
-02:00
-Iraq
-Iraq
-VS
-Norway
-Norway
-Group Stage
-Foxborough, Massachusetts
-05:00
-Argentina
-Argentina
-VS
-Algeria
-Algeria
-Group Stage
-Kansas City, Missouri
-08:00
-Austria
-Austria
-VS
-Jordan
-Jordan
-Group Stage
-Santa Clara, California
-21:00
-Portugal
-Portugal
-VS
-Congo DR
-Congo DR
-Group Stage
-Houston, Texas
-Thu, Jun 18
-00:00
-England
-England
-VS
-Croatia
-Croatia
-Group Stage
-Arlington, Texas
-03:00
-Ghana
-Ghana
-VS
-Panama
-Panama
-Group Stage
-Toronto
-06:00
-Uzbekistan
-Uzbekistan
-VS
-Colombia
-Colombia
-Group Stage
-Mexico City
-20:00
-Czechia
-Czechia
-VS
-South Africa
-South Africa
-Group Stage
-Atlanta, Georgia
-23:00
-Switzerland
-Switzerland
-VS
-Bosnia-Herzegovina
-Bosnia-Herzegovina
-Group Stage
-Inglewood, California
-Fri, Jun 19
-02:00
-Canada
-Canada
-VS
-Qatar
-Qatar
-Group Stage
-Vancouver
-05:00
-Mexico
-Mexico
-VS
-South Korea
-South Korea
-Group Stage
-Guadalajara
-23:00
-United States
-United States
-VS
-Australia
-Australia
-Group Stage
-Seattle, Washington
-Sat, Jun 20
-02:00
-Scotland
-Scotland
-VS
-Morocco
-Morocco
-Group Stage
-Foxborough, Massachusetts
-04:30
-Brazil
-Brazil
-VS
-Haiti
-Haiti
-Group Stage
-Philadelphia, Pennsylvania
-07:00
-Türkiye
-Türkiye
-VS
-Paraguay
-Paraguay
-Group Stage
-Santa Clara, California
-21:00
-Netherlands
-Netherlands
-VS
-Sweden
-Sweden
-Group Stage
-Houston, Texas
-Sun, Jun 21
-00:00
-Germany
-Germany
-VS
-Ivory Coast
-Ivory Coast
-Group Stage
-Toronto
-04:00
-Ecuador
-Ecuador
-VS
-Curaçao
-Curaçao
-Group Stage
-Kansas City, Missouri
-08:00
-Tunisia
-Tunisia
-VS
-Japan
-Japan
-Group Stage
-Guadalupe
-20:00
-Spain
-Spain
-VS
-Saudi Arabia
-Saudi Arabia
-Group Stage
-Atlanta, Georgia
-23:00
-Belgium
-Belgium
-VS
-Iran
-Iran
-Group Stage
-Inglewood, California
-Mon, Jun 22
-02:00
-Uruguay
-Uruguay
-VS
-Cape Verde
-Cape Verde
-Group Stage
-Miami Gardens, Florida
-05:00
-New Zealand
-New Zealand
-VS
-Egypt
-Egypt
-Group Stage
-Vancouver
-21:00
-Argentina
-Argentina
-VS
-Austria
-Austria
-Group Stage
-Arlington, Texas
-Tue, Jun 23
-01:00
-France
-France
-VS
-Iraq
-Iraq
-Group Stage
-Philadelphia, Pennsylvania
-04:00
-Norway
-Norway
-VS
-Senegal
-Senegal
-Group Stage
-East Rutherford, New Jersey
-07:00
-Jordan
-Jordan
-VS
-Algeria
-Algeria
-Group Stage
-Santa Clara, California
-21:00
-Portugal
-Portugal
-VS
-Uzbekistan
-Uzbekistan
-Group Stage
-Houston, Texas
-Wed, Jun 24
-00:00
-England
-England
-VS
-Ghana
-Ghana
-Group Stage
-Foxborough, Massachusetts
-03:00
-Panama
-Panama
-VS
-Croatia
-Croatia
-Group Stage
-Toronto
-06:00
-Colombia
-Colombia
-VS
-Congo DR
-Congo DR
-Group Stage
-Guadalajara
-23:00
-Bosnia-Herzegovina
-Bosnia-Herzegovina
-VS
-Qatar
-Qatar
-Group Stage
-Seattle, Washington
-23:00
-Switzerland
-Switzerland
-VS
-Canada
-Canada
-Group Stage
-Vancouver
-Thu, Jun 25
-02:00
-Morocco
-Morocco
-VS
-Haiti
-Haiti
-Group Stage
-Atlanta, Georgia
-02:00
-Scotland
-Scotland
-VS
-Brazil
-Brazil
-Group Stage
-Miami Gardens, Florida
-05:00
-Czechia
-Czechia
-VS
-Mexico
-Mexico
-Group Stage
-Mexico City
-05:00
-South Africa
-South Africa
-VS
-South Korea
-South Korea
-Group Stage
-Guadalupe
-Fri, Jun 26
-00:00
-Curaçao
-Curaçao
-VS
-Ivory Coast
-Ivory Coast
-Group Stage
-Philadelphia, Pennsylvania
-00:00
-Ecuador
-Ecuador
-VS
-Germany
-Germany
-Group Stage
-East Rutherford, New Jersey
-03:00
-Japan
-Japan
-VS
-Sweden
-Sweden
-Group Stage
-Arlington, Texas
-03:00
-Tunisia
-Tunisia
-VS
-Netherlands
-Netherlands
-Group Stage
-Kansas City, Missouri
-06:00
-Paraguay
-Paraguay
-VS
-Australia
-Australia
-Group Stage
-Santa Clara, California
-06:00
-Türkiye
-Türkiye
-VS
-United States
-United States
-Group Stage
-Inglewood, California
-23:00
-Norway
-Norway
-VS
-France
-France
-Group Stage
-Foxborough, Massachusetts
-23:00
-Senegal
-Senegal
-VS
-Iraq
-Iraq
-Group Stage
-Toronto
-Sat, Jun 27
-04:00
-Cape Verde
-Cape Verde
-VS
-Saudi Arabia
-Saudi Arabia
-Group Stage
-Houston, Texas
-04:00
-Uruguay
-Uruguay
-VS
-Spain
-Spain
-Group Stage
-Guadalajara
-07:00
-Egypt
-Egypt
-VS
-Iran
-Iran
-Group Stage
-Seattle, Washington
-07:00
-New Zealand
-New Zealand
-VS
-Belgium
-Belgium
-Group Stage
-Vancouver
-Sun, Jun 28
-01:00
-Croatia
-Croatia
-VS
-Ghana
-Ghana
-Group Stage
-Philadelphia, Pennsylvania
-01:00
-Panama
-Panama
-VS
-England
-England
-Group Stage
-East Rutherford, New Jersey
-03:30
-Colombia
-Colombia
-VS
-Portugal
-Portugal
-Group Stage
-Miami Gardens, Florida
-03:30
-Congo DR
-Congo DR
-VS
-Uzbekistan
-Uzbekistan
-Group Stage
-Atlanta, Georgia
-06:00
-Algeria
-Algeria
-VS
-Austria
-Austria
-Group Stage
-Kansas City, Missouri
-06:00
-Jordan
-Jordan
-VS
-Argentina
-Argentina
-Group Stage
-Arlington, Texas
-23:00
-Group A 2nd Place
-VS
-Group B 2nd Place
-Round of 32
-Inglewood, California
-Mon, Jun 29
-21:00
-Group C Winner
-VS
-Group F 2nd Place
-Round of 32
-Houston, Texas
-Tue, Jun 30
-00:30
-Group E Winner
-VS
-Third Place Group A/B/C/D/F
-Round of 32
-Foxborough, Massachusetts
-05:00
-Group F Winner
-VS
-Group C 2nd Place
-Round of 32
-Guadalupe
-21:00
-Group E 2nd Place
-VS
-Group I 2nd Place
-Round of 32
-Arlington, Texas
-Wed, Jul 1
-01:00
-Group I Winner
-VS
-Third Place Group C/D/F/G/H
-Round of 32
-East Rutherford, New Jersey
-05:00
-Group A Winner
-VS
-Third Place Group C/E/F/H/I
-Round of 32
-Mexico City
-20:00
-Group L Winner
-VS
-Third Place Group E/H/I/J/K
-Round of 32
-Atlanta, Georgia
-Thu, Jul 2
-00:00
-Group G Winner
-VS
-Third Place Group A/E/H/I/J
-Round of 32
-Seattle, Washington
-04:00
-Group D Winner
-VS
-Third Place Group B/E/F/I/J
-Round of 32
-Santa Clara, California
-23:00
-Group H Winner
-VS
-Group J 2nd Place
-Round of 32
-Inglewood, California
-Fri, Jul 3
-03:00
-Group K 2nd Place
-VS
-Group L 2nd Place
-Round of 32
-Toronto
-07:00
-Group B Winner
-VS
-Third Place Group E/F/G/I/J
-Round of 32
-Vancouver
-22:00
-Group D 2nd Place
-VS
-Group G 2nd Place
-Round of 32
-Arlington, Texas
-Sat, Jul 4
-02:00
-Group J Winner
-VS
-Group H 2nd Place
-Round of 32
-Miami Gardens, Florida
-05:30
-Group K Winner
-VS
-Third Place Group D/E/I/J/L
-Round of 32
-Kansas City, Missouri
-21:00
-Round of 32 1 Winner
-VS
-Round of 32 3 Winner
-Round of 16
-Houston, Texas
-Sun, Jul 5
-01:00
-Round of 32 2 Winner
-VS
-Round of 32 5 Winner
-Round of 16
-Philadelphia, Pennsylvania
-Mon, Jul 6
-00:00
-Round of 32 4 Winner
-VS
-Round of 32 6 Winner
-Round of 16
-East Rutherford, New Jersey
-04:00
-Round of 32 7 Winner
-VS
-Round of 32 8 Winner
-Round of 16
-Mexico City
-23:00
-Round of 32 11 Winner
-VS
-Round of 32 12 Winner
-Round of 16
-Arlington, Texas
-Tue, Jul 7
-04:00
-Round of 32 9 Winner
-VS
-Round of 32 10 Winner
-Round of 16
-Seattle, Washington
-20:00
-Round of 32 14 Winner
-VS
-Round of 32 16 Winner
-Round of 16
-Atlanta, Georgia
-Wed, Jul 8
-00:00
-Round of 32 13 Winner
-VS
-Round of 32 15 Winner
-Round of 16
-Vancouver
-Fri, Jul 10
-00:00
-Round of 16 1 Winner
-VS
-Round of 16 2 Winner
-Quarter-final
-Foxborough, Massachusetts
-23:00
-Round of 16 5 Winner
-VS
-Round of 16 6 Winner
-Quarter-final
-Inglewood, California
-Sun, Jul 12
-01:00
-Round of 16 3 Winner
-VS
-Round of 16 4 Winner
-Quarter-final
-Miami Gardens, Florida
-05:00
-Round of 16 7 Winner
-VS
-Round of 16 8 Winner
-Quarter-final
-Kansas City, Missouri
-Tue, Jul 14
-23:00
-Quarterfinal 1 Winner
-VS
-Quarterfinal 2 Winner
-Semi-final
-Arlington, Texas
-Wed, Jul 15
-23:00
-Quarterfinal 3 Winner
-VS
-Quarterfinal 4 Winner
-Semi-final
-Atlanta, Georgia
-Sun, Jul 19
-01:00
-Semifinal 1 Loser
-VS
-Semifinal 2 Loser
-Group Stage
-Miami Gardens, Florida
-23:00
-Semifinal 1 Winner
-VS
-Semifinal 2 Winner
-Final
-East Rutherford, New Jersey
-Auto-refreshes every 60s · Last updated: Thu, 04 Jun 2026 10:46:28 GMT
+  <div class="tz-row">
+    <span class="tz-label">🌍 Timezone:</span>
+    <select class="tz-select" id="tz-select" onchange="onTZChange()">
+      <option value="4" data-tz="Asia/Dubai">UAE (GMT+4)</option>
+      <option value="3" data-tz="Asia/Riyadh">Saudi Arabia (GMT+3)</option>
+      <option value="3" data-tz="Asia/Qatar">Qatar (GMT+3)</option>
+      <option value="3" data-tz="Asia/Bahrain">Bahrain (GMT+3)</option>
+      <option value="3" data-tz="Asia/Kuwait">Kuwait (GMT+3)</option>
+      <option value="4" data-tz="Asia/Muscat">Oman (GMT+4)</option>
+    </select>
+  </div>
+
+  <div class="filter-row" id="filters"></div>
+  <div id="calendar"><div class="loading-state"><div class="spinner"></div>Loading matches...</div></div>
+  <div class="last-updated" id="last-updated"></div>
+</div>
+
+<script>
+const FLAG_CODES = {
+  "Mexico":"mx","South Africa":"za","South Korea":"kr","Korea Republic":"kr",
+  "Czech Republic":"cz","Czechia":"cz","Canada":"ca",
+  "Bosnia & Herzegovina":"ba","Bosnia-Herzegovina":"ba","Bosnia and Herzegovina":"ba",
+  "USA":"us","United States":"us","Paraguay":"py","Qatar":"qa","Switzerland":"ch",
+  "Brazil":"br","Morocco":"ma","Haiti":"ht","Scotland":"gb-sct","Australia":"au",
+  "Turkey":"tr","Türkiye":"tr","Germany":"de","Curacao":"cw","Curaçao":"cw",
+  "Netherlands":"nl","Japan":"jp","Ivory Coast":"ci","Côte d'Ivoire":"ci",
+  "Ecuador":"ec","Sweden":"se","Tunisia":"tn","Spain":"es","Cape Verde":"cv",
+  "Belgium":"be","Egypt":"eg","Saudi Arabia":"sa","Uruguay":"uy","Iran":"ir",
+  "New Zealand":"nz","France":"fr","Senegal":"sn","Iraq":"iq","Norway":"no",
+  "Argentina":"ar","Algeria":"dz","Austria":"at","Jordan":"jo","Portugal":"pt",
+  "DR Congo":"cd","Congo DR":"cd","Democratic Republic of Congo":"cd",
+  "England":"gb-eng","Croatia":"hr","Ghana":"gh","Panama":"pa",
+  "Uzbekistan":"uz","Colombia":"co"
+};
+
+function flagImg(name) {
+  const code = FLAG_CODES[name];
+  if (!code) return `<span style="width:28px;height:19px;display:inline-block;background:rgba(255,255,255,.08);border-radius:2px;"></span>`;
+  return `<img class="t-flag" src="https://flagcdn.com/w40/${code}.png" alt="${name}" onerror="this.style.visibility='hidden'">`;
+}
+
+const FILTERS = ["All","Group Stage","Round of 32","Round of 16","Quarter-final","Semi-final","Final"];
+let activeFilter = "All";
+let allMatches = [];
+let tzOffset = 3;
+
+// Convert a UTC ISO date string to local date string YYYY-MM-DD using tzOffset
+function toLocalDateStr(isoDate) {
+  const utcMs = new Date(isoDate).getTime();
+  const localMs = utcMs + tzOffset * 3600000;
+  return new Date(localMs).toISOString().substring(0, 10);
+}
+
+// Format local time HH:MM using tzOffset
+function toLocalTime(isoDate) {
+  const utcMs = new Date(isoDate).getTime();
+  const localMs = utcMs + tzOffset * 3600000;
+  const d = new Date(localMs);
+  const hh = String(d.getUTCHours()).padStart(2,'0');
+  const mm = String(d.getUTCMinutes()).padStart(2,'0');
+  return `${hh}:${mm}`;
+}
+
+// Format day label from YYYY-MM-DD, e.g. "Thu, Jun 11"
+function dayLabel(dateStr) {
+  // Parse as local noon to avoid any date shifting
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  return date.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', timeZone:'UTC' });
+}
+
+function onTZChange() {
+  tzOffset = parseInt(document.getElementById('tz-select').value);
+  renderCalendar();
+}
+
+async function fetchESPN() {
+  const url = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?limit=200&dates=20260611-20260719";
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`ESPN API returned ${r.status}`);
+  return r.json();
+}
+
+function parseMatches(data) {
+  return (data.events || []).map(ev => {
+    const comp = ev.competitions?.[0] || {};
+    const competitors = comp.competitors || [];
+    const home = competitors.find(c => c.homeAway === "home") || competitors[0] || {};
+    const away = competitors.find(c => c.homeAway === "away") || competitors[1] || {};
+    const status = ev.status || {};
+    const statusType = status.type || {};
+    return {
+      id: ev.id,
+      date: ev.date, // UTC ISO string
+      homeName: home.team?.displayName || "TBD",
+      awayName: away.team?.displayName || "TBD",
+      homeScore: home.score ?? null,
+      awayScore: away.score ?? null,
+      venue: comp.venue?.address?.city || comp.venue?.fullName || "",
+      round: (()=>{
+        const grp = home.team?.group || away.team?.group || comp.groups?.[0]?.abbreviation || "";
+        if (grp) return "Group " + grp;
+        const note = (comp.notes?.[0]?.headline || "").toLowerCase();
+        const slug = (ev.season?.slug || ev.seasonType?.abbreviation || ev.type?.abbreviation || "").toLowerCase();
+        if (note.includes("semifinal") || slug.includes("semifinal")) return "Semi-final";
+        if (note.includes("quarterfinal") || slug.includes("quarterfinal")) return "Quarter-final";
+        if (note.includes("third") || slug.includes("third")) return "Third Place";
+        if ((note.includes("final") && !note.includes("semi") && !note.includes("quarter")) || (slug === "final")) return "Final";
+        if (note.includes("round of 32") || slug.includes("round-of-32") || note.includes("round of 32")) return "Round of 32";
+        if (note.includes("round of 16") || slug.includes("round-of-16")) return "Round of 16";
+        return "Group Stage";
+      })(),
+      statusState: statusType.state || "pre",
+      displayClock: status.displayClock || "",
+    };
+  });
+}
+
+async function loadMatches() {
+  try {
+    const data = await fetchESPN();
+    allMatches = parseMatches(data);
+    renderCalendar();
+    document.getElementById('last-updated').textContent =
+      `Auto-refreshes every 60s · Last updated: ${new Date().toUTCString()}`;
+  } catch(e) {
+    if (!allMatches.length) {
+      document.getElementById('calendar').innerHTML = `
+        <div class="error-box">⚠️ Could not load data from ESPN.<br>
+        <small style="opacity:.6">${e.message}</small><br>
+        <button class="retry-btn" onclick="loadMatches()">Retry</button></div>`;
+    }
+  }
+}
+
+function isKO(round) {
+  const r = (round || "").toLowerCase();
+  return !r.includes("group") && !r.includes("matchday") && r !== "";
+}
+
+function stageLabel(round) {
+  const r = (round || "").toLowerCase();
+  if (r.includes("semi")) return "Semi-final";
+  if (r.includes("quarter")) return "Quarter-final";
+  if (r.includes("third")) return "Third Place";
+  if (r.includes("final") && !r.includes("round")) return "Final";
+  if (r.includes("round of 32") || r.includes("round-of-32")) return "Round of 32";
+  if (r.includes("round of 16") || r.includes("round-of-16")) return "Round of 16";
+  return round;
+}
+
+function matchPassesFilter(m) {
+  if (activeFilter === "All") return true;
+  if (activeFilter === "Group Stage") return !isKO(m.round);
+  return stageLabel(m.round).toLowerCase().includes(activeFilter.toLowerCase());
+}
+
+function renderCalendar() {
+  const filtered = allMatches.filter(matchPassesFilter);
+
+  // Group by LOCAL date (shifts with timezone)
+  const byDay = {};
+  filtered.forEach(m => {
+    const localDay = toLocalDateStr(m.date);
+    if (!byDay[localDay]) byDay[localDay] = [];
+    byDay[localDay].push(m);
+  });
+
+  const days = Object.keys(byDay).sort();
+  const cal = document.getElementById('calendar');
+  if (!days.length) { cal.innerHTML = '<div class="no-results">No matches found.</div>'; return; }
+
+  cal.innerHTML = days.map(day => {
+    return `<div class="day-group">
+      <div class="day-label">${dayLabel(day)}</div>
+      ${byDay[day].map(m => renderCard(m)).join('')}
+    </div>`;
+  }).join('');
+}
+
+function renderCard(m) {
+  const live = m.statusState === "in";
+  const fin  = m.statusState === "post";
+  const hasScore = m.homeScore !== null && m.awayScore !== null;
+  const sl   = stageLabel(m.round);
+  const ko   = isKO(m.round);
+
+  let timeCol;
+  if (live) {
+    timeCol = `<div class="match-time is-live">
+      <span class="live-dot" style="width:6px;height:6px;margin:0 auto 3px;display:block"></span>
+      <span>${m.displayClock}</span>
+    </div>`;
+  } else if (fin) {
+    timeCol = `<div class="match-time is-fin">
+      <span class="phase-label">FT</span>
+      ${hasScore ? `<span style="font-size:14px;font-weight:700">${m.homeScore}–${m.awayScore}</span>` : ""}
+    </div>`;
+  } else {
+    timeCol = `<div class="match-time">${toLocalTime(m.date)}</div>`;
+  }
+
+  let centre;
+  if ((live || fin) && hasScore) {
+    centre = `<div class="match-teams">
+      <div class="team-block left"><span class="t-name">${m.homeName}</span>${flagImg(m.homeName)}</div>
+      <div class="score-center"><span class="score-num${live?' is-live':''}">${m.homeScore} – ${m.awayScore}</span></div>
+      <div class="team-block right">${flagImg(m.awayName)}<span class="t-name">${m.awayName}</span></div>
+    </div>`;
+  } else {
+    centre = `<div class="match-teams">
+      <div class="team-block left"><span class="t-name">${m.homeName}</span>${flagImg(m.homeName)}</div>
+      <span class="vs-pill">VS</span>
+      <div class="team-block right">${flagImg(m.awayName)}<span class="t-name">${m.awayName}</span></div>
+    </div>`;
+  }
+
+  let badge;
+  if (live)    badge = `<span class="live-badge-pill">🔴 LIVE</span>`;
+  else if (ko) badge = `<span class="match-badge ko-badge">${sl}</span>`;
+  else         badge = `<span class="match-badge group-badge">${sl}</span>`;
+
+  return `<div class="match-card${live?' live-match':fin?' finished':''}">
+    ${timeCol}${centre}${badge}
+    <span class="match-venue">${m.venue}</span>
+  </div>`;
+}
+
+function renderFilters() {
+  document.getElementById('filters').innerHTML = FILTERS.map(f =>
+    `<button class="filter-btn${f===activeFilter?' active':''}" onclick="setFilter('${f}')">${f}</button>`
+  ).join('');
+}
+
+window.setFilter = function(f) { activeFilter = f; renderFilters(); renderCalendar(); };
+
+// Auto-detect Gulf timezone
+function autoDetect() {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const sel = document.getElementById('tz-select');
+    const map = {
+      "Asia/Dubai": 0, "Asia/Riyadh": 1, "Asia/Qatar": 2,
+      "Asia/Bahrain": 3, "Asia/Kuwait": 4, "Asia/Muscat": 5
+    };
+    if (map[tz] !== undefined) sel.selectedIndex = map[tz];
+  } catch(e) {}
+  onTZChange();
+}
+
+renderFilters();
+autoDetect();
+loadMatches();
+setInterval(loadMatches, 60000);
+</script>
+</body>
+</html>
